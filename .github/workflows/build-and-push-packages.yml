@@ -9,6 +9,8 @@ jobs:
     name: Create packages and upload to S3
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
       # - name: Install AWS CLI
       #   id: install-aws-cli
       #   uses: unfor19/install-aws-cli-action@master
@@ -17,7 +19,7 @@ jobs:
 
       # https://github.com/marketplace/actions/configure-aws-credentials-action-for-github-actions
 
-      - name: Get changed files in the docs folder
+      - name: Get changed scripts files
         id: changed-script-files
         uses: tj-actions/changed-files@v39
         with:
