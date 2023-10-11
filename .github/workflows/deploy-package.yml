@@ -23,7 +23,7 @@ jobs:
       - name:  Download package.tar.gz from S3
         run: |
           node_list_provided="${{ inputs.node-list }}"
-          node_list=${my_string// /}
+          node_list="${node_list_provided// /}"
 
           IFS=','
           
