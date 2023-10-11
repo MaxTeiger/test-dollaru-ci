@@ -22,13 +22,14 @@ jobs:
     steps:
       - name:  Download package.tar.gz from S3
         run: |
-          my_string=${{ inputs.node-list }}
-          my_string_without_spaces="{{ my_string.replace(' ', '') }}"
-          my_nodes_list=[{{ my_string_without_spaces.split(',') | map('quote') | join(',') }}]
-          
-          echo "💻 Nodes list: $my_nodes_list"
+          node_list_provided=${{ inputs.node-list }}
+          node_list=${my_string// /}
 
-          for node_name in "${my_nodes_list[@]}"; do
+          IFS=','
+          
+          echo "💻 Nodes list: $node_list"
+
+          for node_name in $node_list; do
             echo "🕦📦 Downloading package.tar.gz from S3"
             echo "aws s3 cp s3://dollaru-script/${node_name}/${{ inputs.tags }}/package.tar.gz package.tar.gz"
             echo "✅📦 Downloaded package.tar.gz from S3"
