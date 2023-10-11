@@ -30,6 +30,7 @@ jobs:
           echo "💻 Nodes list: $node_list"
 
           for node_name in $node_list; do
+            echo "<---------------- $node_name ---------------->"
             echo "🕦📦 Downloading package.tar.gz from S3"
             echo "aws s3 cp s3://dollaru-script/${node_name}/${{ inputs.tags }}/package.tar.gz package.tar.gz"
             echo "✅📦 Downloaded package.tar.gz from S3"
@@ -39,5 +40,8 @@ jobs:
             echo "ssh ubuntu@${node_name} \"cd /target/dir && tar -xvv\" < package.tar.gz"
             echo "✅🚢 Shipping package to node"
 
-            rm package.tar.gz
+            echo "🕦🗑️ Removing package"
+            echo "rm package.tar.gz"
+            echo "✅🗑️ Removed package"
+            echo "<------------------------------------------->"
           done;
