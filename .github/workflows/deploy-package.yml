@@ -1,0 +1,11 @@
+on: 
+  workflow_dispatch:
+    inputs:
+      node-list:
+        description: 'Node list on which you want to deploy the package'     
+        required: true
+        # default: ''
+      tags:
+        description: 'Version tag you want to deploy'
+        required: true
+        # default: 'latest'
