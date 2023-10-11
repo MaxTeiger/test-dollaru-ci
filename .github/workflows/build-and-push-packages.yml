@@ -1,5 +1,5 @@
 name: GitHub Actions Demo
-run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
+run-name: ${{ github.actor }} is building package with GitHub Actions 🚀
 on:
   push:
     branches: ['main']
@@ -20,7 +20,8 @@ jobs:
       - name: Get changed files
         id: changed-files
         uses: tj-actions/changed-files@v39
-        since_last_remote_commit: true 
+        with:
+          since_last_remote_commit: true 
       - name: List all changed files
         run: |
           for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
