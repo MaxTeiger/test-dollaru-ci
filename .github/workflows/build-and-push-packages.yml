@@ -5,23 +5,17 @@ on:
     branches: ['main']
     paths: ['nodes/**']
 jobs:
-  Initialize-Environment:
+  Create-Packages:
+    name: Create packages and upload to S3
     runs-on: ubuntu-latest
     steps:
-      - run: |
-          echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
-          echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
-          echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - run: |
-          echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
-          echo "🖥️ The workflow is now ready to test your code on the runner."
-      - name: Get changed files
-        id: changed-files
-        uses: tj-actions/changed-files@v39
-        with:
-          since_last_remote_commit: true
+      # - name: Install AWS CLI
+      #   id: install-aws-cli
+      #   uses: unfor19/install-aws-cli-action@master
+      #   with:
+      #     version: 2
+
+      # https://github.com/marketplace/actions/configure-aws-credentials-action-for-github-actions
 
       - name: Get changed files in the docs folder
         id: changed-script-files
@@ -29,17 +23,35 @@ jobs:
         with:
           files: nodes/**/*.{sh,shell}  # Alternatively using: `docs/**` or `docs`
           files_ignore: "*.md" # Ignore all markdown files
+          # since_last_remote_commit: true
 
       - name: Run step if any script file(s) has changed
         if: steps.changed-script-files.outputs.any_changed == 'true'
         run: |
           echo "One or more script file has changed."
-          echo "List all the files that have changed: ${{ steps.changed-files-specific.outputs.all_changed_files }}"
-
-          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+          nodes_list=()
+          for file in ${{ steps.changed-script-files.outputs.all_changed_files }}; do
             echo "$file was changed"
             foldername=$(dirname "$file")
-            echo "$foldername"
+            node_name=$(basename $foldername)
+            nodes_list+=($node_name)
+          done
+
+          echo "💻 Nodes list: $nodes_list"
+          unique_nodes_list=($(echo "${nodes_list[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
+
+          for node_name in "${unique_nodes_list[@]}"; do
+            foldername="nodes/$node_name"
+
+            echo "🕦📦 Creating package.zip for $node_name node with 🗂️ $foldername folder"
+            zip -r package.zip $foldername
+            echo "✅📦 Created package.zip"
+
+            echo "🕦🪣 Uploading package.zip to s3 bucket"
+            echo "aws s3 cp package.zip s3://$S3_BUCKET_NAME/$node_name/${GITHUB_SHA::7}/package.zip"
+            echo "✅🪣 Uploaded package.zip to s3 bucket"
+
+            rm package.zip
           done
 
       - run: echo "🍏 This job's status is ${{ job.status }}."
