@@ -1,4 +1,4 @@
-name: GitHub Actions Demo
+name: Build and push packages 📦
 run-name: ${{ github.actor }} is building package with GitHub Actions 🚀
 on:
   push:
@@ -21,10 +21,25 @@ jobs:
         id: changed-files
         uses: tj-actions/changed-files@v39
         with:
-          since_last_remote_commit: true 
-      - name: List all changed files
+          since_last_remote_commit: true
+
+      - name: Get changed files in the docs folder
+        id: changed-script-files
+        uses: tj-actions/changed-files@v39
+        with:
+          files: nodes/**/*.{sh,shell}  # Alternatively using: `docs/**` or `docs`
+          files_ignore: "*.md" # Ignore all markdown files
+
+      - name: Run step if any script file(s) has changed
+        if: steps.changed-script-files.outputs.any_changed == 'true'
         run: |
+          echo "One or more script file has changed."
+          echo "List all the files that have changed: ${{ steps.changed-files-specific.outputs.all_changed_files }}"
+
           for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
             echo "$file was changed"
+            foldername=$(dirname "$file")
+            echo "$foldername"
           done
+
       - run: echo "🍏 This job's status is ${{ job.status }}."
