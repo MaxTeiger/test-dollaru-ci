@@ -4,6 +4,11 @@ on:
   push:
     branches: ['main']
     paths: ['nodes/**']
+
+
+env:
+  S3_BUCKET_NAME: dollaru-script
+
 jobs:
   Create-Packages:
     name: Create packages and upload to S3
@@ -45,15 +50,13 @@ jobs:
           for node_name in "${unique_nodes_list[@]}"; do
             foldername="nodes/$node_name"
 
-            echo "🕦📦 Creating package.zip for $node_name node with 🗂️ $foldername folder"
-            zip -r package.zip $foldername
-            echo "✅📦 Created package.zip"
+            echo "🕦📦 Creating package.tar.gz for $node_name node with 🗂️ $foldername folder"
+            tar -zcvf package.tar.gz $foldername
+            echo "✅📦 Created package.tar.gz"
 
-            echo "🕦🪣 Uploading package.zip to s3 bucket"
-            echo "aws s3 cp package.zip s3://$S3_BUCKET_NAME/$node_name/${GITHUB_SHA::7}/package.zip"
-            echo "✅🪣 Uploaded package.zip to s3 bucket"
+            echo "🕦🪣 Uploading package.tar.gz to s3 bucket"
+            echo "aws s3 cp package.tar.gz s3://$S3_BUCKET_NAME/$node_name/${GITHUB_SHA::7}/package.tar.gz"
+            echo "✅🪣 Uploaded package.tar.gz to s3 bucket"
 
-            rm package.zip
+            rm package.tar.gz
           done
-
-      - run: echo "🍏 This job's status is ${{ job.status }}."

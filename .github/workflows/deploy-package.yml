@@ -1,3 +1,6 @@
+name: Deploy Package 📦
+run-name: ${{ github.actor }} is deploying packages with GitHub Actions 🚀
+
 on: 
   workflow_dispatch:
     inputs:
@@ -9,3 +12,31 @@ on:
         description: 'Version tag you want to deploy'
         required: true
         # default: 'latest'
+env:
+  S3_BUCKET_NAME: dollaru-script
+
+jobs: 
+  deploy-specified-package-on-node:
+    name: Deploy packages version ${{ inputs.tags }} on ${{ inputs.node-list }}
+    runs-on: ubuntu-latest
+    steps:
+      - name:  Download package.tar.gz from S3
+        run: |
+          my_string=${{ inputs.node-list }}
+          my_string_without_spaces="{{ my_string.replace(' ', '') }}"
+          my_nodes_list=[{{ my_string_without_spaces.split(',') | map('quote') | join(',') }}]
+          
+          echo "💻 Nodes list: $my_nodes_list"
+
+          for node_name in "${my_nodes_list[@]}"; do
+            echo "🕦📦 Downloading package.tar.gz from S3"
+            echo "aws s3 cp s3://dollaru-script/${node_name}/${{ inputs.tags }}/package.tar.gz package.tar.gz"
+            echo "✅📦 Downloaded package.tar.gz from S3"
+
+            echo "🕦🚢 Shipping package to node"
+            echo "ssh ubuntu@${node_name} \"rm -rf /target/dir-backup && cp /target/dir /target/dir-backup && rm -rf /target/dir \""
+            echo "ssh ubuntu@${node_name} \"cd /target/dir && tar -xvv\" < package.tar.gz"
+            echo "✅🚢 Shipping package to node"
+
+            rm package.tar.gz
+          done;
