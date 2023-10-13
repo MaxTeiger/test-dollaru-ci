@@ -1,0 +1,107 @@
+name: Tag Created
+on:
+  create:
+    tags:
+      - '*'
+jobs:
+  get-commit-sha:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Get commit SHA
+        id: commit_sha
+        run: echo "GIT_SHA=$(git rev-parse ${{ github.ref }})" >> $GITHUB_ENV
+      - name: Set env
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+      - name: Print commit SHA
+        run: |
+          echo "Commit SHA: ${{ steps.commit_sha.outputs.sha }}"
+          
+          folders=$(cd ./nodes && find . -mindepth 1 -maxdepth 1 -type d | cut -c 3-)
+
+          # Print the list of nodes names
+          echo "${folders[@]}"
+          
+          for node in "${folders[@]}"; do
+            echo "<---------------- $node ---------------->"
+            echo "aws s3 ls "s3://dollaru-script/$node/$GIT_SHA"
+            # if aws s3 ls "s3://dollaru-script/$node/$GIT_SHA" 2>&1 | grep -q 'NoSuchBucket\|NoSuchKey'; then
+            if false; then
+              echo "Folder does not exist"
+            else
+              echo "Folder exists in s3"
+              echo "🕦📦 Downloading package.tar.gz from S3"
+              echo "aws s3 cp s3://dollaru-script/$node/$GIT_SHA/package.tar.gz package.tar.gz"
+              echo "✅📦 Downloaded package.tar.gz from S3"
+
+              echo "🕦🪣 Uploading package.tar.gz to s3 bucket"
+              echo "aws s3 cp package.tar.gz s3://dollaru-script/$node/$RELEASE_VERSION/package.tar.gz"
+              echo "✅🪣 Uploaded package.tar.gz to s3 bucket"
+
+            fi
+          done
+           
+
+# name: Build and push packages 📦
+# run-name: ${{ github.actor }} is building package with GitHub Actions 🚀
+# on:
+#   push:
+#     branches: ['main']
+#     paths: ['nodes/**']
+
+
+# env:
+#   S3_BUCKET_NAME: dollaru-script
+
+# jobs:
+#   Create-Packages:
+#     name: Create packages and upload to S3
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v4
+#       # - name: Install AWS CLI
+#       #   id: install-aws-cli
+#       #   uses: unfor19/install-aws-cli-action@master
+#       #   with:
+#       #     version: 2
+
+#       # https://github.com/marketplace/actions/configure-aws-credentials-action-for-github-actions
+
+#       - name: Get changed scripts files
+#         id: changed-script-files
+#         uses: tj-actions/changed-files@v39
+#         with:
+#           files: nodes/**/*.{sh,shell}  # Alternatively using: `docs/**` or `docs`
+#           files_ignore: "*.md" # Ignore all markdown files
+#           # since_last_remote_commit: true
+
+#       - name: Run step if any script file(s) has changed
+#         if: steps.changed-script-files.outputs.any_changed == 'true'
+#         run: |
+#           echo "One or more script file has changed."
+#           nodes_list=()
+#           for file in ${{ steps.changed-script-files.outputs.all_changed_files }}; do
+#             echo "$file was changed"
+#             foldername=$(dirname "$file")
+#             node_name=$(basename $foldername)
+#             nodes_list+=($node_name)
+#           done
+
+#           echo "💻 Nodes list: $nodes_list"
+#           unique_nodes_list=($(echo "${nodes_list[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
+
+#           for node_name in "${unique_nodes_list[@]}"; do
+#             foldername="nodes/$node_name"
+
+#             echo "🕦📦 Creating package.tar.gz for $node_name node with 🗂️ $foldername folder"
+#             tar -zcvf package.tar.gz $foldername
+#             echo "✅📦 Created package.tar.gz"
+
+#             echo "🕦🪣 Uploading package.tar.gz to s3 bucket"
+#             echo "aws s3 cp package.tar.gz s3://$S3_BUCKET_NAME/$node_name/${GITHUB_SHA::7}/package.tar.gz"
+#             echo "✅🪣 Uploaded package.tar.gz to s3 bucket"
+
+#             rm package.tar.gz
+#           done
