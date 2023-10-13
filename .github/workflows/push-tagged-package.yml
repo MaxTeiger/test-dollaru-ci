@@ -1,4 +1,4 @@
-name: Tag Created
+name: Tag Created 🏷️
 on:
   push:
     tags:
@@ -9,14 +9,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Get commit SHA
-        id: commit_sha
-        run: echo "GIT_SHA=$(git rev-parse ${{ github.ref }})" >> $GITHUB_ENV
       - name: Set env
         run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-      - name: Print commit SHA
+      - name: Tag package ${github.sha::7} to ${github.ref}
         run: |
-          echo "Commit SHA: $GIT_SHA"
           echo "SHA: ${GITHUB_SHA::7}"
           folders=$(cd ./nodes && find . -mindepth 1 -maxdepth 1 -type d | cut -c 3-)
             
@@ -24,16 +20,16 @@ jobs:
           echo "${folders[@]}"
           for node in $folders; do
               echo "<---------------- ${node} ---------------->"
-              echo "aws s3 ls \"s3://dollaru-script/$node/$GIT_SHA\""
+              echo "aws s3 ls \"s3://dollaru-script/$node/${GITHUB_SHA::7}\""
                 
-              # if aws s3 ls "s3://dollaru-script/$node/$GIT_SHA" 2>&1 | grep -q 'NoSuchBucket\|NoSuchKey'; then
+              # if aws s3 ls "s3://dollaru-script/$node/${GITHUB_SHA::7}" 2>&1 | grep -q 'NoSuchBucket\|NoSuchKey'; then
             
               if false; then
-                echo "Folder does not exist"
+                echo "Tag ${GITHUB_SHA::7} does not exists for node ${node}"
               else
                   echo "Folder exists in s3"
                   echo "🕦📦 Downloading package.tar.gz from S3"
-                  echo "aws s3 cp s3://dollaru-script/$node/$GIT_SHA/package.tar.gz package.tar.gz"
+                  echo "aws s3 cp s3://dollaru-script/$node/${GITHUB_SHA::7}/package.tar.gz package.tar.gz"
                   echo "✅📦 Downloaded package.tar.gz from S3"
                     
                   echo "🕦🪣 Uploading package.tar.gz to s3 bucket"
