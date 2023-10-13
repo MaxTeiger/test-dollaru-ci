@@ -17,7 +17,7 @@ jobs:
       - name: Print commit SHA
         run: |
           echo "Commit SHA: $GIT_SHA"
-
+          echo "SHA: ${GITHUB_SHA::7}"
           folders=$(cd ./nodes && find . -mindepth 1 -maxdepth 1 -type d | cut -c 3-)
             
           # Print the list of nodes names
