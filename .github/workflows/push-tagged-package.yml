@@ -16,7 +16,7 @@ jobs:
         run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
       - name: Print commit SHA
         run: |
-          echo "Commit SHA: ${{ steps.commit_sha.outputs.sha }}"
+          echo "Commit SHA: $GIT_SHA"
           
           folders=$(cd ./nodes && find . -mindepth 1 -maxdepth 1 -type d | cut -c 3-)
 
